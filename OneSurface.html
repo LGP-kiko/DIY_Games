@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>同一面 OneSurface</title>
 <style>
-  :root { --bg:#0b0f17; --panel:#141b2a; --edge:#232e45; --text:#dbe4f5; --dim:#7c8bab; --acc:#ffb454; }
+  :root { --bg:#070b15; --panel:#0e1628; --edge:#25365c; --text:#e2ecff; --dim:#8fa3c8; --acc:#22d3ee; --acc2:#a78bfa; --ok:#34d399; --gold:#ffd54a; }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html,body { height:100%; margin:0; }
   body {
-    background: radial-gradient(1200px 800px at 50% -10%, #1a2440 0%, var(--bg) 55%);
+    background: radial-gradient(1200px 800px at 50% -10%, #17264a 0%, var(--bg) 60%);
     color:var(--text);
     font-family:"Segoe UI", system-ui, "Microsoft YaHei", sans-serif;
     overflow:hidden; user-select:none;
@@ -18,19 +18,32 @@
   .screen.hidden { display:none; }
   h1.title {
     font-size:44px; letter-spacing:12px; margin:0 0 6px; font-weight:800;
-    background:linear-gradient(90deg,#38bdf8,#a78bfa,#f472b6); -webkit-background-clip:text; background-clip:text; color:transparent;
+    background:linear-gradient(90deg,#22d3ee,#a78bfa,#f472b6); -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 0 30px rgba(34,211,238,.25);
   }
   .subtitle { color:var(--dim); font-size:14px; margin-bottom:34px; letter-spacing:2px; }
   .btn {
-    padding:12px 44px; margin:8px; border:none; border-radius:10px; cursor:pointer;
-    background:var(--acc); color:#1a1206; font-size:17px; font-weight:700; letter-spacing:2px;
+    padding:12px 44px; margin:8px; border:none; border-radius:12px; cursor:pointer;
+    background:linear-gradient(135deg,#22d3ee,#0ea5e9); color:#04131f; font-size:17px; font-weight:700; letter-spacing:2px;
+    box-shadow:0 4px 18px rgba(34,211,238,.22); transition:filter .12s, box-shadow .12s, transform .08s;
   }
-  .btn:hover { filter:brightness(1.15); }
-  .btn.ghost { background:var(--panel); color:var(--text); border:1px solid var(--edge); }
+  .btn:hover { filter:brightness(1.12); box-shadow:0 6px 26px rgba(34,211,238,.38); }
+  .btn:active { transform:translateY(1px); }
+  .btn.ghost { background:rgba(14,22,40,.72); color:var(--text); border:1px solid var(--edge); box-shadow:none; }
+  .btn.ghost:hover { border-color:var(--acc); color:var(--acc); }
   .btn.small { padding:8px 18px; font-size:13px; margin:4px; letter-spacing:1px; }
-  .btn:disabled { opacity:.4; cursor:not-allowed; }
+  .btn:disabled { opacity:.4; cursor:not-allowed; box-shadow:none; }
   .hint { color:var(--dim); font-size:12px; line-height:2; text-align:center; margin-top:18px; }
   .hint b { color:var(--text); }
+  /* 语言切换（首页右上角） */
+  .lang-switch { position:fixed; top:14px; right:14px; z-index:30; display:flex; gap:4px; }
+  .lang-btn {
+    padding:5px 14px; font-size:12px; letter-spacing:1px; border-radius:8px; cursor:pointer;
+    border:1px solid var(--edge); background:rgba(14,22,40,.72); color:var(--dim);
+    transition:border-color .12s, color .12s, background .12s;
+  }
+  .lang-btn:hover { border-color:var(--acc); color:var(--acc); }
+  .lang-btn.active { border-color:var(--acc); color:var(--acc); background:#17263f; }
 
   /* 选关 */
   #level-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; justify-content:center; max-width:840px; max-height:60vh; overflow:auto; padding:10px; }
@@ -45,7 +58,7 @@
   .lvl-card.locked { opacity:.45; cursor:not-allowed; }
   .lvl-card .n { font-size:26px; font-weight:800; color:var(--acc); }
   .lvl-card .nm { font-size:12px; color:var(--dim); margin:4px 0; }
-  .lvl-card .bs { font-size:11px; color:#59d67b; }
+  .lvl-card .bs { font-size:11px; color:#34d399; }
   .lvl-card.locked .n { color:var(--dim); }
   .lvl-card.locked .bs { color:var(--dim); }
   .lvl-card.custom-card .n { cursor:pointer; }
@@ -148,8 +161,8 @@
   .tool.active { border-color:var(--acc); background:#22304a; box-shadow:0 0 8px rgba(56,189,248,.35); }
   .tool.ob { color:#0b0f17; font-weight:800; }
   .tool.ob[data-char="H"] { background:#3a3a4d; color:#fff; }
-  .tool.ob[data-char="R"] { background:#e0493f; }
-  .tool.ob[data-char="L"] { background:#4aa8e0; }
+  .tool.ob[data-char="R"] { background:#ef4444; }
+  .tool.ob[data-char="L"] { background:#38bdf8; }
   #editor-side {
     position:fixed; right:12px; top:70px; z-index:10; width:250px;
     background:rgba(10,14,24,.85); border:1px solid var(--edge); border-radius:12px; padding:12px;
@@ -178,12 +191,16 @@
 
 <!-- 首页 -->
 <div id="screen-home" class="screen">
-  <h1 class="title">同一面</h1>
-  <div class="subtitle">OneSurface · 三维空间的二维迷宫</div>
-  <button class="btn" id="btn-start">开 始 游 戏</button>
-  <button class="btn ghost" id="btn-editor">地图编辑器</button>
-  <button class="btn ghost" id="btn-import">输入分享码</button>
-  <div class="hint">
+  <div class="lang-switch" id="lang-switch">
+    <button class="lang-btn" data-lang="zh">中文</button>
+    <button class="lang-btn" data-lang="en">EN</button>
+  </div>
+  <h1 class="title" data-i18n="homeTitle">同一面</h1>
+  <div class="subtitle" data-i18n="homeSub">OneSurface · 三维空间的二维迷宫</div>
+  <button class="btn" id="btn-start" data-i18n="homeStart">开 始 游 戏</button>
+  <button class="btn ghost" id="btn-editor" data-i18n="homeEditor">地图编辑器</button>
+  <button class="btn ghost" id="btn-import" data-i18n="homeImport">输入分享码</button>
+  <div class="hint" data-i18n-html="homeHint">
     <b>WASD</b> 移动跳跃　<b>中键</b> 自由视角(暂停)　<b>E</b> 传送门(首次+1000)　<b>F</b> 鼠标瞄准射击(-800分)<br>
     <b>G</b> 看终点　<b>R</b> 重开　<b>Enter</b> 暂停　<b>M</b> 静音<br>
     初始 <b>2000</b> 分，每秒扣分递增；清除障碍加分（红+100 蓝+200 黑+400）；抵达 <b>终点</b> 即胜利
@@ -192,12 +209,12 @@
 
 <!-- 选关 -->
 <div id="screen-levels" class="screen hidden">
-  <h1 class="title" style="font-size:30px;">选择关卡</h1>
-  <div class="sec-title">内置关卡</div>
+  <h1 class="title" style="font-size:30px;" data-i18n="levelsTitle">选择关卡</h1>
+  <div class="sec-title" data-i18n="levelsBuiltin">内置关卡</div>
   <div id="level-grid"></div>
   <div id="custom-grid" style="display:none;grid-template-columns:repeat(6,1fr);gap:10px;justify-content:center;max-width:840px;"></div>
-  <button class="btn ghost" id="btn-back-home" style="margin-top:20px;">返 回 首 页</button>
-  <div id="custom-trash" title="把自定义关卡拖到这里删除">🗑️ 拖自定义关卡到此处删除</div>
+  <button class="btn ghost" id="btn-back-home" style="margin-top:20px;" data-i18n="levelsHome">返 回 首 页</button>
+  <div id="custom-trash" data-i18n="levelsTrash" data-i18n-title="levelsTrashTitle" title="把自定义关卡拖到这里删除">🗑️ 拖自定义关卡到此处删除</div>
 </div>
 
 <!-- 编辑器 -->
@@ -205,29 +222,29 @@
   <div id="editor-top">
     <span class="face-tag" id="ed-face">前 面</span>
     <div id="palette"></div>
-    <span style="color:var(--dim);font-size:12px;margin-left:6px;"><b style="color:var(--text)">WASD</b> 旋转到相邻面 · <b style="color:var(--text)">QE</b> 当前面逆/顺时针旋转 · 左键放置 · 右键擦除</span>
+    <span data-i18n-html="edHint" style="color:var(--dim);font-size:12px;margin-left:6px;"><b style="color:var(--text)">WASD</b> 旋转到相邻面 · <b style="color:var(--text)">QE</b> 当前面逆/顺时针旋转 · 左键放置 · 右键擦除</span>
   </div>
   <canvas id="gl-editor" style="position:fixed;inset:0;width:100%;height:100%;display:block;"></canvas>
   <div id="editor-side">
-    <h3>地图编辑器</h3>
+    <h3 data-i18n="edTitle">地图编辑器</h3>
     <div class="row">
-      <button class="btn small" id="ed-size5">尺寸5</button>
-      <button class="btn small" id="ed-size6">尺寸6</button>
-      <button class="btn small" id="ed-size8">尺寸8</button>
-      <button class="btn small" id="ed-size10">尺寸10</button>
+      <button class="btn small" id="ed-size5" data-i18n="edSize5">尺寸5</button>
+      <button class="btn small" id="ed-size6" data-i18n="edSize6">尺寸6</button>
+      <button class="btn small" id="ed-size8" data-i18n="edSize8">尺寸8</button>
+      <button class="btn small" id="ed-size10" data-i18n="edSize10">尺寸10</button>
     </div>
     <div class="row" style="margin-top:6px;">
       <input id="ed-size-in" type="number" min="5" max="16" step="1" value="5" style="width:64px;padding:6px;border-radius:8px;border:1px solid #3a4a6a;background:#101827;color:#e5edf7;">
-      <button class="btn small ghost" id="ed-size-apply">应用尺寸</button>
+      <button class="btn small ghost" id="ed-size-apply" data-i18n="edSizeApply">应用尺寸</button>
     </div>
     <div class="row">
-      <button class="btn small" id="ed-test">试 玩</button>
-      <button class="btn small ghost" id="ed-share">分享码</button>
-      <button class="btn small ghost" id="ed-clear">清空</button>
-      <button class="btn small ghost" id="ed-back">返回</button>
+      <button class="btn small" id="ed-test" data-i18n="edTest">试 玩</button>
+      <button class="btn small ghost" id="ed-share" data-i18n="edShare">分享码</button>
+      <button class="btn small ghost" id="ed-clear" data-i18n="edClear">清空</button>
+      <button class="btn small ghost" id="ed-back" data-i18n="edBack">返回</button>
     </div>
     <div class="info" id="ed-info"></div>
-    <textarea id="share-code" readonly placeholder="通关一次后，分享码会出现在这里"></textarea>
+    <textarea id="share-code" readonly data-i18n-ph="edSharePh" placeholder="通关一次后，分享码会出现在这里"></textarea>
     <div id="editor-msg"></div>
   </div>
 </div>
@@ -237,43 +254,43 @@
   <canvas id="gl"></canvas>
   <div id="hud">
     <div class="row">
-      <div><div class="lab">得分</div><span id="h-score">2000</span></div>
-      <div><div class="lab">用时</div><span id="h-time">0.0s</span></div>
-      <div><div class="lab">关卡</div><span id="h-level">-</span></div>
+      <div><div class="lab" data-i18n="hudScore">得分</div><span id="h-score">2000</span></div>
+      <div><div class="lab" data-i18n="hudTime">用时</div><span id="h-time">0.0s</span></div>
+      <div><div class="lab" data-i18n="hudLevel">关卡</div><span id="h-level">-</span></div>
     </div>
     <div class="btn-row">
-      <button class="btn small ghost" id="h-pause">暂停</button>
-      <button class="btn small ghost" id="h-back">返回</button>
+      <button class="btn small ghost" id="h-pause" data-i18n="hudPause">暂停</button>
+      <button class="btn small ghost" id="h-back" data-i18n="hudBack">返回</button>
     </div>
   </div>
-  <div id="free-hint" class="hidden">自由视角中（已暂停）· 松开中键回到默认视角</div>
+  <div id="free-hint" class="hidden" data-i18n="freeHint">自由视角中（已暂停）· 松开中键回到默认视角</div>
   <button class="btn small ghost" id="h-view">3D 视角</button>
   <!-- 展开模式：大号操作指引（立方体左上外侧），右上角「收起指引」通关第 1 关后解锁 -->
   <div id="guide-big">
-    <div id="guide-head"><span class="guide-title">操作指引</span><button id="guide-collapse" disabled>收起指引</button></div>
-    <div class="guide-row"><span class="key">A / D</span><span class="lab">移动</span></div>
-    <div class="guide-row"><span class="key">W / ↑</span><span class="lab">跳跃</span></div>
-    <div class="guide-row"><span class="key">S / ↓</span><span class="lab">穿板</span></div>
-    <div class="guide-row"><span class="key">F</span><span class="lab">鼠标瞄准射击（-800分）</span></div>
-    <div class="guide-row"><span class="key">E</span><span class="lab">使用传送门</span></div>
-    <div class="guide-row"><span class="key">R</span><span class="lab">重开</span></div>
-    <div class="guide-row"><span class="key">Enter</span><span class="lab">暂停</span></div>
-    <div class="guide-row"><span class="key">中键</span><span class="lab">转视角</span></div>
+    <div id="guide-head"><span class="guide-title" data-i18n="guideTitle">操作指引</span><button id="guide-collapse" disabled data-i18n="guideCollapse">收起指引</button></div>
+    <div class="guide-row"><span class="key">A / D</span><span class="lab" data-i18n="guideMove">移动</span></div>
+    <div class="guide-row"><span class="key">W / ↑</span><span class="lab" data-i18n="guideJump">跳跃</span></div>
+    <div class="guide-row"><span class="key">S / ↓</span><span class="lab" data-i18n="guideDrop">穿板</span></div>
+    <div class="guide-row"><span class="key">F</span><span class="lab" data-i18n="guideShoot">鼠标瞄准射击（-800分）</span></div>
+    <div class="guide-row"><span class="key">E</span><span class="lab" data-i18n="guidePortal">使用传送门</span></div>
+    <div class="guide-row"><span class="key">R</span><span class="lab" data-i18n="guideRestart">重开</span></div>
+    <div class="guide-row"><span class="key">Enter</span><span class="lab" data-i18n="guidePause">暂停</span></div>
+    <div class="guide-row"><span class="key" data-i18n="guideMiddle">中键</span><span class="lab" data-i18n="guideView">转视角</span></div>
   </div>
   <!-- 收起模式：底部小提示条，点击可重新展开 -->
-  <div id="ctrl-hint" title="点击展开操作指引"><b>移动</b> A/D · <b>跳跃</b> W/↑ · <b>穿板</b> S/↓ · <b>鼠标瞄准射击</b> F（-800分） · <b>使用传送门</b> E · <b>重开</b> R · <b>暂停</b> Enter · <b>转视角</b> 中键 · <span class="expand-tip">点击展开 ▸</span></div>
+  <div id="ctrl-hint" data-i18n-html="ctrlHint" data-i18n-title="ctrlHintTitle" title="点击展开操作指引"><b>移动</b> A/D · <b>跳跃</b> W/↑ · <b>穿板</b> S/↓ · <b>鼠标瞄准射击</b> F（-800分） · <b>使用传送门</b> E · <b>重开</b> R · <b>暂停</b> Enter · <b>转视角</b> 中键 · <span class="expand-tip">点击展开 ▸</span></div>
   <div id="game-overlay" class="hidden"></div>
 </div>
 
 <!-- 导入分享码 -->
 <div id="modal-import" class="modal-mask hidden">
   <div class="modal">
-    <h3>输入分享码</h3>
-    <textarea id="import-code" placeholder="粘贴 [N] 开头的分享码…"></textarea>
+    <h3 data-i18n="impTitle">输入分享码</h3>
+    <textarea id="import-code" data-i18n-ph="impPh" placeholder="粘贴 [N] 开头的分享码…"></textarea>
     <div class="err" id="import-err"></div>
     <div class="row">
-      <button class="btn small ghost" id="import-cancel">取消</button>
-      <button class="btn small" id="import-ok">确认游玩</button>
+      <button class="btn small ghost" id="import-cancel" data-i18n="cancel">取消</button>
+      <button class="btn small" id="import-ok" data-i18n="impOk">确认游玩</button>
     </div>
   </div>
 </div>
@@ -281,13 +298,13 @@
 <!-- 编辑自定义关卡（改名/换图标） -->
 <div id="modal-custom" class="modal-mask hidden">
   <div class="modal">
-    <h3>编辑自定义关卡</h3>
-    <input id="custom-name" maxlength="20" placeholder="关卡名称" style="width:100%;box-sizing:border-box;">
-    <div class="sec-title" style="margin:10px 0 6px;">选择图标</div>
+    <h3 data-i18n="custTitle">编辑自定义关卡</h3>
+    <input id="custom-name" maxlength="20" data-i18n-ph="custNamePh" placeholder="关卡名称" style="width:100%;box-sizing:border-box;">
+    <div class="sec-title" style="margin:10px 0 6px;" data-i18n="custIconTitle">选择图标</div>
     <div id="custom-icons" style="display:flex;flex-wrap:wrap;gap:4px;max-height:150px;overflow:auto;padding:4px;"></div>
     <div class="row">
-      <button class="btn small ghost" id="custom-cancel">取消</button>
-      <button class="btn small" id="custom-save">保存</button>
+      <button class="btn small ghost" id="custom-cancel" data-i18n="cancel">取消</button>
+      <button class="btn small" id="custom-save" data-i18n="save">保存</button>
     </div>
   </div>
 </div>
@@ -295,11 +312,11 @@
 <!-- 删除确认 -->
 <div id="modal-confirm" class="modal-mask hidden">
   <div class="modal">
-    <h3>删除自定义关卡</h3>
+    <h3 data-i18n="delTitle">删除自定义关卡</h3>
     <div id="confirm-text" style="color:var(--dim);"></div>
     <div class="row">
-      <button class="btn small ghost" id="confirm-cancel">取消</button>
-      <button class="btn small" id="confirm-ok" style="background:#ff5b5b;color:#fff;">删除</button>
+      <button class="btn small ghost" id="confirm-cancel" data-i18n="cancel">取消</button>
+      <button class="btn small" id="confirm-ok" style="background:#ff5b5b;color:#fff;" data-i18n="delete">删除</button>
     </div>
   </div>
 </div>
@@ -631,14 +648,14 @@ function decodeLevel(code){
   // 头部 [N] 或 [N/出生面字母+状态]，例：[5/F0]、[6/U90] —— 记录出生面及其旋转状态，
   // 让出生点箭头（指向该面重力方向）在编辑与游玩时一致
   var m = /^\[(\d{1,2})(?:\/([FRLBUD])(\d{1,3}))?\]/.exec(code);
-  if (!m) return { err:'格式错误：应以 [尺寸] 开头' };
+  if (!m) return { err:S('errFormat') };
   var N = parseInt(m[1],10);
-  if (N<5 || N>16) return { err:'尺寸必须在 5~16 之间' };
+  if (N<5 || N>16) return { err:S('errSize') };
   var hdrFace = m[2]!==undefined ? FACE_LETTER_IDX[m[2]] : -1;
   var hdrState = m[3]!==undefined ? parseInt(m[3],10) : 0;
-  if (hdrFace>=0 && hdrState%90!==0) return { err:'出生面状态必须是 0/90/180/270' };
+  if (hdrFace>=0 && hdrState%90!==0) return { err:S('errSpawnState') };
   var body = code.slice(m[0].length);
-  if (body.length !== 6*N*N) return { err:'字符数量与尺寸不符（应为 6×'+N+'×'+N+'）' };
+  if (body.length !== 6*N*N) return { err:Sf('errCharCount',{N:N}) };
   var grid=[], k=0, spawn=null, goal=null, portals={};
   for (var f=0;f<6;f++){
     var face=[];
@@ -646,22 +663,22 @@ function decodeLevel(code){
       var row=[];
       for (var i=0;i<N;i++){
         var ch=body[k++];
-        if (CHAR_OK.indexOf(ch)<0) return { err:'含非法字符：'+ch };
+        if (CHAR_OK.indexOf(ch)<0) return { err:Sf('errChar',{ch:ch}) };
         row.push(ch);
-        if (ch==='s'){ if(spawn) return {err:'出生点只能有一个'}; spawn={face:f,i:i,j:j}; }
-        if (ch==='e'){ if(goal) return {err:'终点只能有一个'}; goal={face:f,i:i,j:j}; }
+        if (ch==='s'){ if(spawn) return {err:S('err2Spawn')}; spawn={face:f,i:i,j:j}; }
+        if (ch==='e'){ if(goal) return {err:S('err2Goal')}; goal={face:f,i:i,j:j}; }
         if (/^[0-9]$/.test(ch)) portals[ch]=(portals[ch]||0)+1;
       }
       face.push(row);
     }
     grid.push(face);
   }
-  if (!spawn) return { err:'缺少出生点 s' };
-  if (!goal) return { err:'缺少终点 e' };
-  if (hdrFace>=0 && hdrFace!==spawn.face) return { err:'头部出生面与 s 所在面不符（头部 '+FACE_LETTERS[hdrFace]+'，s 在 '+FACE_LETTERS[spawn.face]+'）' };
+  if (!spawn) return { err:S('errNoSpawn') };
+  if (!goal) return { err:S('errNoGoal') };
+  if (hdrFace>=0 && hdrFace!==spawn.face) return { err:Sf('errHeaderFace',{h:FACE_LETTERS[hdrFace],s:FACE_LETTERS[spawn.face]}) };
   var pairs=0;
-  for (var d in portals){ if (portals[d]!==2) return { err:'传送门数字 '+d+' 必须恰好出现 2 次（当前 '+portals[d]+'）' }; pairs++; }
-  if (pairs>10) return { err:'传送门最多 10 对' };
+  for (var d in portals){ if (portals[d]!==2) return { err:Sf('errPortalPair',{d:d,n:portals[d]}) }; pairs++; }
+  if (pairs>10) return { err:S('errPortalMax') };
   return { ok:true, N:N, grid:grid, spawn:spawn, spawnState:(hdrFace>=0?hdrState:0), goal:goal, portalDigits:Object.keys(portals) };
 }
 function encodeLevel(N, grid, spawnState){
@@ -678,7 +695,7 @@ function encodeLevel(N, grid, spawnState){
 }
 
 /* ---------- 玩家物理参数 ---------- */
-var PHY = { G:10, MAXSPEED:3, ACC:8, JUMP_H:1.5, HALF:0.38 };
+var PHY = { G:10, MAXSPEED:3, ACC:8, JUMP_H:1.5, HALF:0.285 };
 PHY.JUMP_V = Math.sqrt(2*PHY.G*PHY.JUMP_H); // 跳跃高度仍为 1.5（公式补偿），滞空更久
 var DT = 1/120;
 
@@ -770,10 +787,10 @@ function stepPlayer(lvl, p, inp){
   // 穿层落地后需松开 S 再按才穿下一层
   if (inp.sHeld && p.grounded && !p.dropS && !p.sWasDown){
     p.dropS = true;
-    var fu = p.u + gu*0.38 + gu*0.01, fv = p.v + gv*0.38 + gv*0.01; // 脚底点 + 容差（沿重力方向外推 0.01）
+    var fu = p.u + gu*0.285 + gu*0.01, fv = p.v + gv*0.285 + gv*0.01; // 脚底点 + 容差（沿重力方向外推 0.01）
     var wf = unfoldCross(p.face, fu, fv, N, h);
     p.dropCell = { face: wf.face, i: Math.floor(wf.u), j: Math.floor(wf.v) };
-    p.dropLevel = (p.u+gu*0.38)*gu + (p.v+gv*0.38)*gv; // 脚底的水平面（穿板期间忽略同一水平面的相邻木板）
+    p.dropLevel = (p.u+gu*0.285)*gu + (p.v+gv*0.285)*gv; // 脚底的水平面（穿板期间忽略同一水平面的相邻木板）
   }
   p.sWasDown = inp.sHeld;
   if (!inp.sHeld && p.grounded){ p.dropS = false; p.dropCell = null; p.dropLevel = undefined; }
@@ -788,11 +805,11 @@ function stepPlayer(lvl, p, inp){
   var nu = p.u + dg*gu, nv = p.v + dg*gv;
   if (dg > 0){ // 沿 g 下落：找支撑
     var minG = Infinity;
-    // 脚底从 p+g*0.38 到 nu+g*0.38 扫过的格子
-    var foot0u = p.u + gu*0.38, foot0v = p.v + gv*0.38;
-    var foot1u = nu + gu*0.38, foot1v = nv + gv*0.38;
-    var ci0 = Math.floor(Math.min(foot0u, foot1u)-0.37), ci1 = Math.floor(Math.max(foot0u, foot1u)+0.37);
-    var cj0 = Math.floor(Math.min(foot0v, foot1v)-0.37), cj1 = Math.floor(Math.max(foot0v, foot1v)+0.37);
+    // 脚底从 p+g*0.285 到 nu+g*0.285 扫过的格子
+    var foot0u = p.u + gu*0.285, foot0v = p.v + gv*0.285;
+    var foot1u = nu + gu*0.285, foot1v = nv + gv*0.285;
+    var ci0 = Math.floor(Math.min(foot0u, foot1u)-0.275), ci1 = Math.floor(Math.max(foot0u, foot1u)+0.275);
+    var cj0 = Math.floor(Math.min(foot0v, foot1v)-0.275), cj1 = Math.floor(Math.max(foot0v, foot1v)+0.275);
     for (var ci=ci0; ci<=ci1; ci++)
       for (var cj=cj0; cj<=cj1; cj++){
         if (!solidTopFor(lvl,p.face,ci,cj,p.dropS,p.dropCell)) continue;
@@ -808,7 +825,7 @@ function stepPlayer(lvl, p, inp){
       }
     if (minG < Infinity){
       // 落地：脚底 g 轴 = minG
-      var centerG = minG - 0.38;
+      var centerG = minG - 0.285;
       var tangentU = p.u - (p.u*gu+p.v*gv)*gu, tangentV = p.v - (p.u*gu+p.v*gv)*gv; // 沿 h 的分量
       p.u = tangentU + centerG*gu;
       p.v = tangentV + centerG*gv;
@@ -821,10 +838,10 @@ function stepPlayer(lvl, p, inp){
     }
   } else if (dg < 0){ // 沿 -g 上升：头撞 WALL
     var maxG = -Infinity;
-    var head0u = p.u - gu*0.38, head0v = p.v - gv*0.38;
-    var head1u = nu - gu*0.38, head1v = nv - gv*0.38;
-    var ci20 = Math.floor(Math.min(head0u, head1u)-0.37), ci21 = Math.floor(Math.max(head0u, head1u)+0.37);
-    var cj20 = Math.floor(Math.min(head0v, head1v)-0.37), cj21 = Math.floor(Math.max(head0v, head1v)+0.37);
+    var head0u = p.u - gu*0.285, head0v = p.v - gv*0.285;
+    var head1u = nu - gu*0.285, head1v = nv - gv*0.285;
+    var ci20 = Math.floor(Math.min(head0u, head1u)-0.275), ci21 = Math.floor(Math.max(head0u, head1u)+0.275);
+    var cj20 = Math.floor(Math.min(head0v, head1v)-0.275), cj21 = Math.floor(Math.max(head0v, head1v)+0.275);
     for (var ci2=ci20; ci2<=ci21; ci2++)
       for (var cj2=cj20; cj2<=cj21; cj2++){
         if (cellTerrain(lvl,p.face,ci2,cj2)!==T.WALL) continue;
@@ -835,7 +852,7 @@ function stepPlayer(lvl, p, inp){
         if (headG0 >= bndG2-0.0001 && headG1 <= bndG2 && bndG2 > maxG) maxG = bndG2;
       }
     if (maxG > -Infinity){
-      var centerG2 = maxG + 0.38;
+      var centerG2 = maxG + 0.285;
       var tangentU2 = p.u - (p.u*gu+p.v*gv)*gu, tangentV2 = p.v - (p.u*gu+p.v*gv)*gv;
       p.u = tangentU2 + centerG2*gu;
       p.v = tangentV2 + centerG2*gv;
@@ -851,9 +868,9 @@ function stepPlayer(lvl, p, inp){
   // 避免 S 穿层触发时方框扫描误把「上层木板」当成支撑导致不落
   if (p.grounded){
     var supported=false;
-    var footGx=p.u+gu*0.38, footGy=p.v+gv*0.38;
+    var footGx=p.u+gu*0.285, footGy=p.v+gv*0.285;
     var footG=footGx*gu+footGy*gv+0.01;
-    var fu0=footGx-0.37, fu1=footGx+0.37, fv0=footGy-0.37, fv1=footGy+0.37;
+    var fu0=footGx-0.275, fu1=footGx+0.275, fv0=footGy-0.275, fv1=footGy+0.275;
     for (var si=Math.floor(fu0);si<=Math.floor(fu1)&&!supported;si++)
       for (var sj=Math.floor(fv0);sj<=Math.floor(fv1)&&!supported;sj++){
         if (!solidTopFor(lvl,p.face,si,sj,p.dropS,p.dropCell)) continue;
@@ -869,12 +886,12 @@ function stepPlayer(lvl, p, inp){
   var nu3 = p.u + dh*hx, nv3 = p.v + dh*hy;
   if (dh !== 0){
     var blocked=false;
-    var ci3=Math.floor(Math.min(p.u,nu3)-0.37), ci4=Math.floor(Math.max(p.u,nu3)+0.37);
-    var cj3=Math.floor(Math.min(p.v,nv3)-0.37), cj4=Math.floor(Math.max(p.v,nv3)+0.37);
+    var ci3=Math.floor(Math.min(p.u,nu3)-0.275), ci4=Math.floor(Math.max(p.u,nu3)+0.275);
+    var cj3=Math.floor(Math.min(p.v,nv3)-0.275), cj4=Math.floor(Math.max(p.v,nv3)+0.275);
     for (var ci5=ci3; ci5<=ci4 && !blocked; ci5++)
       for (var cj5=cj3; cj5<=cj4 && !blocked; cj5++){
         if (cellTerrain(lvl,p.face,ci5,cj5)!==T.WALL) continue;
-        if (nu3+0.38>ci5 && nu3-0.38<ci5+1 && nv3+0.38>cj5 && nv3-0.38<cj5+1) blocked=true;
+        if (nu3+0.285>ci5 && nu3-0.285<ci5+1 && nv3+0.285>cj5 && nv3-0.285<cj5+1) blocked=true;
       }
     if (!blocked){ p.u = nu3; p.v = nv3; }
     else {
@@ -893,7 +910,7 @@ function stepPlayer(lvl, p, inp){
 
   // ---- 死亡 / 胜利检测（地刺/障碍查询自动跨面；死亡优先） ----
   var S=0.15;
-  var u0=p.u-0.38, u1=p.u+0.38, v0=p.v-0.38, v1=p.v+0.38;
+  var u0=p.u-0.285, u1=p.u+0.285, v0=p.v-0.285, v1=p.v+0.285;
   for (var ci5=Math.floor(u0);ci5<=Math.floor(u1);ci5++)
     for (var cj5=Math.floor(v0);cj5<=Math.floor(v1);cj5++){
       if (!isSpike(lvl,p.face,ci5+0.5,cj5+0.5)) continue;
@@ -902,13 +919,13 @@ function stepPlayer(lvl, p, inp){
   if (obsHitPlayer(lvl,p.face,p.u,p.v,PHY.HALF)){ p.alive=false; return; }
   // 终点：玩家 AABB 与「钥匙触发区」重叠 —— 触发区 = 目标格中央 0.30×0.30（每侧内缩 35%）。
   // 考虑障碍重心偏移：障碍碰撞盒（半宽 0.3325）贴支撑砖块表面停住，中心偏离格中心 0.1675，
-  // 致死范围在偏移侧缩到 0.7125-0.1675=0.545；胜利触及 = 0.15+0.38=0.53 < 0.545 →
+  // 致死范围在偏移侧缩到 0.7125-0.1675=0.545；胜利触及 = 0.15+0.285=0.53 < 0.545 →
   // 无论障碍压在钥匙上/下/左/右，玩家碰触发区都必然先碰障碍（死亡优先），必须先清障碍才能过关。
   var g=lvl.goal;
   var gu2=g.i+0.5, gv2=g.j+0.5;
   var keyIn=(1-0.30)/2; // 每侧内缩 35%
   if (p.face===g.face && Math.abs(p.u-gu2)<1.4 && Math.abs(p.v-gv2)<1.4 &&
-      p.u+0.38>g.i+keyIn && p.u-0.38<g.i+1-keyIn && p.v+0.38>g.j+keyIn && p.v-0.38<g.j+1-keyIn){ p.won=true; return; }
+      p.u+0.285>g.i+keyIn && p.u-0.285<g.i+1-keyIn && p.v+0.285>g.j+keyIn && p.v-0.285<g.j+1-keyIn){ p.won=true; return; }
 
   // ---- 坐标归位 ----
   if (p.u < -CROSS_GATE || p.u > N+CROSS_GATE || p.v < -CROSS_GATE || p.v > N+CROSS_GATE){
@@ -922,19 +939,19 @@ function stepPlayer(lvl, p, inp){
    消除贴墙/跨面时因浮点或映射导致的微小嵌入（卡脚/穿模），任意 2D 变换下均适用。 */
 function resolveOverlap(lvl, p){
   var N=lvl.N;
-  var u0=Math.floor(p.u-0.38), u1=Math.floor(p.u+0.38);
-  var v0=Math.floor(p.v-0.38), v1=Math.floor(p.v+0.38);
+  var u0=Math.floor(p.u-0.285), u1=Math.floor(p.u+0.285);
+  var v0=Math.floor(p.v-0.285), v1=Math.floor(p.v+0.285);
   for (var j=v0;j<=v1;j++) for (var i=u0;i<=u1;i++){
     if (i<0||i>=N||j<0||j>=N) continue;
     if (CH2TER[lvl.grid[p.face][j][i]]!==T.WALL) continue;
-    if (!(p.u+0.38>i && p.u-0.38<i+1 && p.v+0.38>j && p.v-0.38<j+1)) continue;
-    var penR=p.u+0.38-i, penL=i+1-(p.u-0.38);
-    var penD=p.v+0.38-j, penU=j+1-(p.v-0.38);
+    if (!(p.u+0.285>i && p.u-0.285<i+1 && p.v+0.285>j && p.v-0.285<j+1)) continue;
+    var penR=p.u+0.285-i, penL=i+1-(p.u-0.285);
+    var penD=p.v+0.285-j, penU=j+1-(p.v-0.285);
     var m=Math.min(penR,penL,penD,penU);
-    if (m===penR) p.u=i-0.38;
-    else if (m===penL) p.u=i+1+0.38;
-    else if (m===penD) p.v=j-0.38;
-    else p.v=j+1+0.38;
+    if (m===penR) p.u=i-0.285;
+    else if (m===penL) p.u=i+1+0.285;
+    else if (m===penD) p.v=j-0.285;
+    else p.v=j+1+0.285;
   }
 }
 /* 展开十字中格子 (ci,cj) 的实际地形（越界自动映射相邻面；四角实心碰撞框） */
@@ -1169,25 +1186,229 @@ var BUILTIN_LEVELS = [
 /* ============================================================================
  * 第 3 部分：渲染与 UI（依赖 THREE）
  * ==========================================================================*/
+/* ============ 国际化：中 / EN 双语言（全局；applyLang 在下方 IIFE 内） ============ */
+var LANG = 'zh';
+var FACE_NAMES_EN = ['Front','Right','Back','Left','Top','Bottom'];
+var LV_NAMES_EN = {
+  '家门钥匙':'Home Key', '出门右拐':'Right Turn', '午餐汉堡':'Lunch Burger', '迷途猫眯':'Lost Kitty',
+  '露天彩票':'Open-air Lottery', '空翻杂技':'Acrobatics', '鸟枪猎手':'Shotgun Hunter', '战术迂回':'Tactical Maneuver',
+  '极简主义':'Minimalism', '十字路口':'Crossroads', '压力过大':'Too Much Pressure', '彩蛋爱心':'Easter Egg: Heart',
+  '失败的鳗':'Failing Eel', '战壕伏倒':'Trench Fall', '气泡饮料':'Bubble Soda', '禁止飙车':'No Racing',
+  '海胆小镇':'Urchin Town', '首尾呼应':'Full Circle'
+};
+var STR = {
+  zh: {
+    title:'同一面 OneSurface',
+    homeTitle:'同一面',
+    homeSub:'OneSurface · 三维空间的二维迷宫',
+    homeStart:'开 始 游 戏',
+    homeEditor:'地图编辑器',
+    homeImport:'输入分享码',
+    homeHint:'<b>WASD</b> 移动跳跃　<b>中键</b> 自由视角(暂停)　<b>E</b> 传送门(首次+1000)　<b>F</b> 鼠标瞄准射击(-800分)<br><b>G</b> 看终点　<b>R</b> 重开　<b>Enter</b> 暂停　<b>M</b> 静音<br>初始 <b>2000</b> 分，每秒扣分递增；清除障碍加分（红+100 蓝+200 黑+400）；抵达 <b>终点</b> 即胜利',
+    levelsTitle:'选择关卡',
+    levelsBuiltin:'内置关卡',
+    levelsHome:'返 回 首 页',
+    levelsTrash:'🗑️ 拖自定义关卡到此处删除',
+    levelsTrashTitle:'把自定义关卡拖到这里删除',
+    edHint:'<b style="color:var(--text)">WASD</b> 旋转到相邻面 · <b style="color:var(--text)">QE</b> 当前面逆/顺时针旋转 · 左键放置 · 右键擦除',
+    edTitle:'地图编辑器',
+    edSize5:'尺寸5', edSize6:'尺寸6', edSize8:'尺寸8', edSize10:'尺寸10',
+    edSizeApply:'应用尺寸',
+    edTest:'试 玩', edShare:'分享码', edClear:'清空', edBack:'返回',
+    edSharePh:'通关一次后，分享码会出现在这里',
+    hudScore:'得分', hudTime:'用时', hudLevel:'关卡',
+    hudPause:'暂停', hudBack:'返回',
+    freeHint:'自由视角中（已暂停）· 松开中键回到默认视角',
+    view3d:'3D 视角', view2d:'2D 视角',
+    guideTitle:'操作指引', guideCollapse:'收起指引',
+    guideMove:'移动', guideJump:'跳跃', guideDrop:'穿板', guideShoot:'鼠标瞄准射击（-800分）', guidePortal:'使用传送门',
+    guideRestart:'重开', guidePause:'暂停', guideView:'转视角', guideMiddle:'中键',
+    ctrlHintTitle:'点击展开操作指引',
+    ctrlHint:'<b>移动</b> A/D · <b>跳跃</b> W/↑ · <b>穿板</b> S/↓ · <b>鼠标瞄准射击</b> F（-800分） · <b>使用传送门</b> E · <b>重开</b> R · <b>暂停</b> Enter · <b>转视角</b> 中键 · <span class="expand-tip">点击展开 ▸</span>',
+    impTitle:'输入分享码', impPh:'粘贴 [N] 开头的分享码…', impOk:'确认游玩',
+    cancel:'取消',
+    custTitle:'编辑自定义关卡', custNamePh:'关卡名称', custIconTitle:'选择图标', save:'保存',
+    delTitle:'删除自定义关卡', delete:'删除',
+    errFormat:'格式错误：应以 [尺寸] 开头',
+    errSize:'尺寸必须在 5~16 之间',
+    errSpawnState:'出生面状态必须是 0/90/180/270',
+    errCharCount:'字符数量与尺寸不符（应为 6×{N}×{N}）',
+    errChar:'含非法字符：{ch}',
+    err2Spawn:'出生点只能有一个',
+    err2Goal:'终点只能有一个',
+    errNoSpawn:'缺少出生点 s',
+    errNoGoal:'缺少终点 e',
+    errHeaderFace:'头部出生面与 s 所在面不符（头部 {h}，s 在 {s}）',
+    errPortalPair:'传送门数字 {d} 必须恰好出现 2 次（当前 {n}）',
+    errPortalMax:'传送门最多 10 对',
+    errNoThree:'错误：3D 引擎(three.js)未加载 —— 请打开构建后的成品文件（OneSurface.html）',
+    errRuntime:'运行时错误: {m}（行 {l}）',
+    errUnknown:'未知',
+    failHit:'碰到障碍或地刺',
+    failScore0:'积分归零',
+    winTitle:'胜 利',
+    winScore:'得分 {s}',
+    winTime:'用时 {t} 秒',
+    winNew:' · 新纪录！',
+    failTitle:'失败',
+    btnNext:'下一关', btnBackEditor:'返回编辑器', btnReplay:'再玩一次', btnLevels:'选关', btnRetry:'重试 (R)',
+    pauseTitle:'已暂停', pauseSub:'按 Enter 或点击继续', btnResume:'继续',
+    custDefaultName:'自定义关卡 {n}',
+    customLevel:'自定义关卡',
+    comingSoon:'待开发', stayTuned:'敬请期待',
+    bsBest:'最佳 {n}', notCleared:'未通关', cleared:'已通关',
+    titleIcon:'点击换图标', titleRename:'点击改名字',
+    confirmDelete:'确定删除「{n}」吗？删除后不可恢复。',
+    guideColTitle:'收起指引（切到底部小提示条）',
+    guideColLock:'通关第 1 关后解锁收起',
+    edFace:'{f} 面 · {d}°',
+    palWall:'墙体', palPlank:'木板', palSpike:'地刺', palSpawn:'出生点', palGoal:'终点',
+    palPortal:'传送门 {n}', palBlack:'黑障', palRed:'红障', palBlue:'蓝障',
+    edMsgChooseSize:'请选择尺寸（5~16）后开始绘制',
+    edMsgDraft:'已恢复上次草稿，通关试玩一次后即可分享',
+    edInfoOk:'尺寸 <b>{n}</b> · 出生点 {f}/{l}{s} · 终点 ✓ · 传送门 {p} 对',
+    edMsgBeat:'已通关，可以分享（点「分享码」复制）',
+    edMsgNeedBeat:'通关试玩一次后即可分享',
+    edInfoErr:'尺寸 <b>{n}</b> · <span style="color:#ff5b5b;">{e}</span>',
+    edMsgIncomplete:'补齐出生点/终点并配对传送门后才能试玩',
+    edTestName:'编辑器试玩',
+    edMsgMustBeat:'请先通关试玩一次才能分享',
+    edMsgCodeGen:'分享码已生成（已复制到剪贴板备用，Ctrl+C）'
+  },
+  en: {
+    title:'OneSurface',
+    homeTitle:'OneSurface',
+    homeSub:'OneSurface · a 2D maze in 3D space',
+    homeStart:'S T A R T',
+    homeEditor:'Level Editor',
+    homeImport:'Import Code',
+    homeHint:'<b>WASD</b> move &amp; jump　<b>Middle</b> free look (pause)　<b>E</b> portal (+1000 once)　<b>F</b> aim &amp; shoot (-800)<br><b>G</b> view goal　<b>R</b> restart　<b>Enter</b> pause　<b>M</b> mute<br>Start with <b>2000</b> pts, decay accelerates each second; clear obstacles for points (red +100, blue +200, black +400); reach the <b>goal</b> to win',
+    levelsTitle:'Select Level',
+    levelsBuiltin:'Built-in Levels',
+    levelsHome:'H O M E',
+    levelsTrash:'🗑️ Drag custom levels here to delete',
+    levelsTrashTitle:'Drag a custom level here to delete',
+    edHint:'<b style="color:var(--text)">WASD</b> rotate to neighbor face · <b style="color:var(--text)">QE</b> rotate this face · Left-click place · Right-click erase',
+    edTitle:'Level Editor',
+    edSize5:'Size 5', edSize6:'Size 6', edSize8:'Size 8', edSize10:'Size 10',
+    edSizeApply:'Apply',
+    edTest:'Test', edShare:'Share', edClear:'Clear', edBack:'Back',
+    edSharePh:'The share code appears here after clearing once',
+    hudScore:'Score', hudTime:'Time', hudLevel:'Level',
+    hudPause:'Pause', hudBack:'Back',
+    freeHint:'Free look (paused) · release middle mouse to return',
+    view3d:'3D View', view2d:'2D View',
+    guideTitle:'CONTROLS', guideCollapse:'Collapse',
+    guideMove:'Move', guideJump:'Jump', guideDrop:'Drop', guideShoot:'Aim & shoot (-800)', guidePortal:'Use portal',
+    guideRestart:'Restart', guidePause:'Pause', guideView:'Rotate view', guideMiddle:'Middle',
+    ctrlHintTitle:'Click to expand controls',
+    ctrlHint:'<b>Move</b> A/D · <b>Jump</b> W/↑ · <b>Drop</b> S/↓ · <b>Aim &amp; shoot</b> F (-800) · <b>Use portal</b> E · <b>Restart</b> R · <b>Pause</b> Enter · <b>Rotate</b> Middle · <span class="expand-tip">Click to expand ▸</span>',
+    impTitle:'Import Code', impPh:'Paste a code starting with [N]…', impOk:'Play',
+    cancel:'Cancel',
+    custTitle:'Edit Custom Level', custNamePh:'Level name', custIconTitle:'Choose icon', save:'Save',
+    delTitle:'Delete Custom Level', delete:'Delete',
+    errFormat:'Invalid format: start with [size]',
+    errSize:'Size must be 5~16',
+    errSpawnState:'Spawn state must be 0/90/180/270',
+    errCharCount:'Character count mismatch (expected 6×{N}×{N})',
+    errChar:'Invalid character: {ch}',
+    err2Spawn:'Only one spawn point allowed',
+    err2Goal:'Only one goal allowed',
+    errNoSpawn:'Missing spawn point s',
+    errNoGoal:'Missing goal e',
+    errHeaderFace:'Header spawn face does not match the s location (header {h}, s on {s})',
+    errPortalPair:'Portal digit {d} must appear exactly 2 times (found {n})',
+    errPortalMax:'At most 10 portal pairs',
+    errNoThree:'Error: 3D engine (three.js) not loaded - open the built file (OneSurface.html)',
+    errRuntime:'Runtime error: {m} (line {l})',
+    errUnknown:'Unknown',
+    failHit:'Hit an obstacle or spike',
+    failScore0:'Score reached zero',
+    winTitle:'VICTORY',
+    winScore:'Score {s}',
+    winTime:'Time {t}s',
+    winNew:' · New record!',
+    failTitle:'DEFEAT',
+    btnNext:'Next', btnBackEditor:'Back to Editor', btnReplay:'Play Again', btnLevels:'Levels', btnRetry:'Retry (R)',
+    pauseTitle:'PAUSED', pauseSub:'Press Enter or click to resume', btnResume:'Resume',
+    custDefaultName:'Custom Level {n}',
+    customLevel:'Custom Level',
+    comingSoon:'Coming Soon', stayTuned:'Stay Tuned',
+    bsBest:'Best {n}', notCleared:'Not Cleared', cleared:'Cleared',
+    titleIcon:'Click to change icon', titleRename:'Click to rename',
+    confirmDelete:'Delete "{n}"? This cannot be undone.',
+    guideColTitle:'Collapse to the bottom bar',
+    guideColLock:'Unlock after clearing level 1',
+    edFace:'{f} · {d}°',
+    palWall:'Wall', palPlank:'Plank', palSpike:'Spike', palSpawn:'Spawn', palGoal:'Goal',
+    palPortal:'Portal {n}', palBlack:'Black', palRed:'Red', palBlue:'Blue',
+    edMsgChooseSize:'Choose a size (5~16) to start drawing',
+    edMsgDraft:'Draft restored. Clear a test play to unlock sharing',
+    edInfoOk:'Size <b>{n}</b> · Spawn {f}/{l}{s} · Goal ✓ · Portals {p} pair(s)',
+    edMsgBeat:'Cleared! Click Share to copy the code',
+    edMsgNeedBeat:'Clear a test play once to enable sharing',
+    edInfoErr:'Size <b>{n}</b> · <span style="color:#ff5b5b;">{e}</span>',
+    edMsgIncomplete:'Add spawn/goal and pair up portals to enable testing',
+    edTestName:'Editor Test',
+    edMsgMustBeat:'Clear a test play once before sharing',
+    edMsgCodeGen:'Share code generated (copied to clipboard, Ctrl+C)'
+  }
+};
+function S(k){ var d=STR[LANG]||STR.zh; return (d[k]!==undefined)?d[k]:k; }
+function Sf(k,o){ var s=S(k); if (o) for (var p in o) s=s.split('{'+p+'}').join(o[p]); return s; }
+function FN(f){ return (LANG==='en') ? (FACE_NAMES_EN[f]!==undefined?FACE_NAMES_EN[f]:FACE_NAMES[f]) : FACE_NAMES[f]; }
+function LVN(name){ return (LANG==='en' && LV_NAMES_EN[name]) ? LV_NAMES_EN[name] : name; }
 (function(){
 if (typeof THREE === 'undefined'){
   // 诊断：three.js 未加载（例如直接打开了未构建的模板）
   try{
     var eb=typeof document!=='undefined'?document.getElementById('err-bar'):null;
-    if (eb){ eb.style.display='block'; eb.textContent='错误：3D 引擎(three.js)未加载 —— 请打开构建后的成品文件（OneSurface.html）'; }
+    if (eb){ eb.style.display='block'; eb.textContent=S('errNoThree'); }
   }catch(e1){}
   return;
 }
 window.addEventListener('error', function(e){
   try{
     var eb2=document.getElementById('err-bar');
-    if (eb2){ eb2.style.display='block'; eb2.textContent='运行时错误: '+(e.message||e.type||'未知')+'（行 '+((e.lineno!=null)?e.lineno:'?')+'）'; }
+    if (eb2){ eb2.style.display='block'; eb2.textContent=Sf('errRuntime',{m:e.message||e.type||S('errUnknown'),l:(e.lineno!=null)?e.lineno:'?'}); }
   }catch(err){}
 });
 
 var $=function(id){return document.getElementById(id);};
 var screen=function(id){return $(id);};
 function show(id){ [ 'screen-home','screen-levels','screen-editor','screen-game' ].forEach(function(s){ $(s).classList.toggle('hidden', s!==id); }); }
+
+/* ---------- 语言切换 ---------- */
+function setLang(l){
+  LANG = (l==='en') ? 'en' : 'zh';
+  try{ localStorage.setItem('cube_lang', LANG); }catch(e){}
+  applyLang();
+}
+function applyLang(){
+  try{ document.documentElement.lang = (LANG==='en') ? 'en' : 'zh-CN'; }catch(e){}
+  try{ document.title = S('title'); }catch(e){}
+  document.querySelectorAll('[data-i18n]').forEach(function(el){ el.textContent = S(el.getAttribute('data-i18n')); });
+  document.querySelectorAll('[data-i18n-html]').forEach(function(el){ el.innerHTML = S(el.getAttribute('data-i18n-html')); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(function(el){ el.placeholder = S(el.getAttribute('data-i18n-ph')); });
+  document.querySelectorAll('[data-i18n-title]').forEach(function(el){ el.title = S(el.getAttribute('data-i18n-title')); });
+  var ls=$('lang-switch');
+  if (ls) ls.querySelectorAll('.lang-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.lang===LANG); });
+  if (mode==='editor'){
+    buildPalette();
+    var ef=$('ed-face'); if (ef) ef.textContent=edLabel();
+    updateEditorInfo();
+  } else if (mode==='play'){
+    var hv=$('h-view'); if (hv) hv.textContent=(cam.viewMode==='2d')?S('view2d'):S('view3d');
+    var hl=$('h-level'); if (hl && curPlay) hl.textContent=LVN(curPlay.name);
+    updateGuide();
+  }
+  if (!$('screen-levels').classList.contains('hidden')) showLevelSelect();
+}
+var langSw=$('lang-switch');
+if (langSw) langSw.addEventListener('click', function(e){
+  var b=e.target.closest?e.target.closest('.lang-btn'):null;
+  if (b && b.dataset.lang && b.dataset.lang!==LANG) setLang(b.dataset.lang);
+});
 
 /* ---------- 存储 ---------- */
 var store=(function(){
@@ -1327,8 +1548,8 @@ function redrawFaces(lvl){
   for (var f=0;f<6;f++){
     var ctx=faceCanvases[f];
     // 背景 + 网格线
-    ctx.fillStyle='#0d1117'; ctx.fillRect(0,0,N*px,N*px);
-    ctx.strokeStyle='rgba(136,170,255,0.12)'; ctx.lineWidth=1;
+    ctx.fillStyle='#080d1a'; ctx.fillRect(0,0,N*px,N*px);
+    ctx.strokeStyle='rgba(56,189,248,0.14)'; ctx.lineWidth=1;
     for (var i=0;i<=N;i++){
       ctx.beginPath(); ctx.moveTo(i*px+0.5,0); ctx.lineTo(i*px+0.5,N*px); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(0,i*px+0.5); ctx.lineTo(N*px,i*px+0.5); ctx.stroke();
@@ -1338,7 +1559,7 @@ function redrawFaces(lvl){
       var ch=lvl.grid[f][j][i2];
       var x=i2*px, y=j*px;
       var t=CH2TER[ch];
-      if (t===T.WALL){ ctx.fillStyle='#5b6b8f'; ctx.fillRect(x+1,y+1,px-2,px-2); }
+      if (t===T.WALL){ ctx.fillStyle='#6779ab'; ctx.fillRect(x+1,y+1,px-2,px-2); ctx.fillStyle='rgba(226,236,255,0.16)'; ctx.fillRect(x+1,y+1,px-2,px*0.22); }
       else if (t===T.PLANK){ ctx.fillStyle='#c98a4b'; ctx.fillRect(x+1,y+1,px-2,px-2);
         ctx.fillStyle='#8a5a2e'; ctx.fillRect(x+1,y+px*0.32,px-2,2); ctx.fillRect(x+1,y+px*0.66,px-2,2); }
       else if (t===T.SPIKE){
@@ -1363,9 +1584,9 @@ function redrawFaces(lvl){
         var ax=gs.gu/gls, ay=gs.gv/gls;
         var cx=x+px/2, cy=y+px/2;
         var pxx=-ay*px*0.17, pyy=ax*px*0.17; // 垂直方向
-        ctx.strokeStyle='#59d67b'; ctx.lineWidth=2; ctx.lineCap='round';
+        ctx.strokeStyle='#34d399'; ctx.lineWidth=2; ctx.lineCap='round';
         ctx.beginPath(); ctx.moveTo(cx-ax*px*0.16, cy-ay*px*0.16); ctx.lineTo(cx+ax*px*0.14, cy+ay*px*0.14); ctx.stroke();
-        ctx.fillStyle='#59d67b';
+        ctx.fillStyle='#34d399';
         ctx.beginPath();
         ctx.moveTo(cx+ax*px*0.24, cy+ay*px*0.24);
         ctx.lineTo(cx-ax*px*0.02+pxx, cy-ay*px*0.02+pyy);
@@ -1379,7 +1600,7 @@ function redrawFaces(lvl){
     for (var k=0;k<lvl.obstacles.length;k++){
       var o=lvl.obstacles[k];
       if (o.dead||o.face!==f) continue;
-      drawUrchin(ctx, o.u*px, o.v*px, px, ['#3a3a4d','#e0493f','#4aa8e0'][o.type-1]);
+      drawUrchin(ctx, o.u*px, o.v*px, px, ['#3a3a4d','#ef4444','#38bdf8'][o.type-1]);
       drawObstacleEye(ctx, lvl, f, o, o.u*px-px*0.35, o.v*px-px*0.35, px*0.7);
     }
     // 子弹
@@ -1452,7 +1673,7 @@ function drawUrchin(ctx, cx, cy, px, color){
 function drawPlayerOnFace(ctx, lvl, f, px){
   var N=lvl.N;
   var u=player.u, v=player.v;
-  var a0=u-0.4, a1=u+0.4, b0=v-0.4, b1=v+0.4;
+  var a0=u-0.34, a1=u+0.34, b0=v-0.34, b1=v+0.34; // 视觉 15% 缩小（0.4→0.34），贴合碰撞框
   // 玩家面（f === player.face）：画 AABB 裁剪到面内的部分
   if (f===player.face){
     var cu0=Math.max(0,a0), cu1=Math.min(N,a1), cv0=Math.max(0,b0), cv1=Math.min(N,b1);
@@ -1626,12 +1847,12 @@ function stepWorld(dt){
   var inp={ left:input.left, right:input.right, jump:input.jump, sHeld:input.sHeld };
   input.jump=false;
   stepPlayer(level, player, inp);
-  if (!player.alive){ sfx.fail(); onFail('碰到障碍或地刺'); return; }
+  if (!player.alive){ sfx.fail(); onFail(S('failHit')); return; }
   if (player.won){ sfx.win(); onWin(); return; }
   stepObstacles(level, player, dt);
   stepBullets(level, bullets, dt);
   stepScore(score, dt);
-  if (score.score<=0){ player.alive=false; sfx.fail(); onFail('积分归零'); return; }
+  if (score.score<=0){ player.alive=false; sfx.fail(); onFail(S('failScore0')); return; }
   if (score.tick>secWarn){ secWarn=score.tick; if (score.score<400) sfx.tick(); }
   updateHUD();
 }
@@ -1670,14 +1891,14 @@ function onWin(){
     store.setCustom(cg2);
   }
   var ov=$('game-overlay');
-  ov.innerHTML='<h2 style="color:#59d67b;">胜 利</h2>'+
-    '<div class="big">得分 '+finalScore+'</div>'+
-    '<div class="sub">用时 '+score.elapsed.toFixed(1)+' 秒'+(isNew?' · 新纪录！':'')+'</div>'+
+  ov.innerHTML='<h2 style="color:#34d399;">'+S('winTitle')+'</h2>'+
+    '<div class="big">'+Sf('winScore',{s:finalScore})+'</div>'+
+    '<div class="sub">'+Sf('winTime',{t:score.elapsed.toFixed(1)})+(isNew?S('winNew'):'')+'</div>'+
     '<div class="row">'+
-      (currentLevelIndex!==null && currentLevelIndex+1<BUILTIN_LEVELS.length && BUILTIN_LEVELS[currentLevelIndex+1].code ? '<button class="btn" id="ov-next">下一关</button>' : '')+
-      (editorBeatSrc==='editor'?'<button class="btn" id="ov-editor">返回编辑器</button>':'')+
-      '<button class="btn ghost" id="ov-replay">再玩一次</button>'+
-      '<button class="btn ghost" id="ov-select">选关</button>'+
+      (currentLevelIndex!==null && currentLevelIndex+1<BUILTIN_LEVELS.length && BUILTIN_LEVELS[currentLevelIndex+1].code ? '<button class="btn" id="ov-next">'+S('btnNext')+'</button>' : '')+
+      (editorBeatSrc==='editor'?'<button class="btn" id="ov-editor">'+S('btnBackEditor')+'</button>':'')+
+      '<button class="btn ghost" id="ov-replay">'+S('btnReplay')+'</button>'+
+      '<button class="btn ghost" id="ov-select">'+S('btnLevels')+'</button>'+
     '</div>';
   ov.classList.remove('hidden');
   var nxt=$('ov-next'), rep=$('ov-replay'), sel=$('ov-select'), edb=$('ov-editor');
@@ -1688,12 +1909,12 @@ function onWin(){
 }
 function onFail(reason){
   var ov=$('game-overlay');
-  ov.innerHTML='<h2 style="color:#ff5b5b;">失败</h2>'+
+  ov.innerHTML='<h2 style="color:#ff5b5b;">'+S('failTitle')+'</h2>'+
     '<div class="sub">'+reason+'</div>'+
     '<div class="row">'+
-      '<button class="btn" id="ov-retry">重试 (R)</button>'+
-      (editorBeatSrc==='editor'?'<button class="btn" id="ov-fail-editor">返回编辑器</button>':'')+
-      '<button class="btn ghost" id="ov-fail-select">选关</button>'+
+      '<button class="btn" id="ov-retry">'+S('btnRetry')+'</button>'+
+      (editorBeatSrc==='editor'?'<button class="btn" id="ov-fail-editor">'+S('btnBackEditor')+'</button>':'')+
+      '<button class="btn ghost" id="ov-fail-select">'+S('btnLevels')+'</button>'+
     '</div>';
   ov.classList.remove('hidden');
   $('ov-retry').onclick=function(){ ov.classList.add('hidden'); restartLevel(); };
@@ -1723,8 +1944,8 @@ function startLevelWithCode(name, code, src){
   curPlay={ name:name, code:code };
   mode='play'; editorBeatSrc=src;
   buildLevel3D(lvl);
-  $('h-level').textContent=name;
-  $('h-view').textContent = (cam.viewMode==='2d') ? '2D 视角' : '3D 视角';
+  $('h-level').textContent=LVN(name);
+  $('h-view').textContent = (cam.viewMode==='2d') ? S('view2d') : S('view3d');
   $('game-overlay').classList.add('hidden');
   show('screen-game');
   updateGuide(); // 操作指引：展开/收起状态 + 收起按钮解锁
@@ -1864,7 +2085,7 @@ function togglePause(){
   pauseState=!pauseState;
   if (pauseState){
     var ov=$('game-overlay');
-    ov.innerHTML='<h2>已暂停</h2><div class="sub">按 Enter 或点击继续</div><div class="row"><button class="btn" id="ov-resume">继续</button><button class="btn ghost" id="ov-pause-back">选关</button></div>';
+    ov.innerHTML='<h2>'+S('pauseTitle')+'</h2><div class="sub">'+S('pauseSub')+'</div><div class="row"><button class="btn" id="ov-resume">'+S('btnResume')+'</button><button class="btn ghost" id="ov-pause-back">'+S('btnLevels')+'</button></div>';
     ov.classList.remove('hidden');
     $('ov-resume').onclick=function(){ togglePause(); };
     $('ov-pause-back').onclick=function(){ ov.classList.add('hidden'); pauseState=false; showLevelSelect(); };
@@ -1914,7 +2135,7 @@ $('import-ok').onclick=function(){
   var dec=decodeLevel(code);
   if (!dec.ok){ $('import-err').textContent=dec.err; return; }
   var cust=store.custom();
-  cust.push({ name:'自定义关卡 '+(cust.length+1), code:code, beat:false, icon:'🎮' });
+  cust.push({ name:Sf('custDefaultName',{n:cust.length+1}), code:code, beat:false, icon:'🎮' });
   store.setCustom(cust);
   $('modal-import').classList.add('hidden');
   showLevelSelect();
@@ -1927,15 +2148,15 @@ function showLevelSelect(){
     if (!lv.code){ // 待开发占位：按钮禁用
       var ph=document.createElement('div');
       ph.className='lvl-card';
-      ph.innerHTML='<div class="n" style="font-size:16px;">⏳</div><div class="nm">待开发</div><div class="bs" style="color:var(--dim);">敬请期待</div>';
+      ph.innerHTML='<div class="n" style="font-size:16px;">⏳</div><div class="nm">'+S('comingSoon')+'</div><div class="bs" style="color:var(--dim);">'+S('stayTuned')+'</div>';
       grid.appendChild(ph);
       return;
     }
     var isU=i<unlocked;
     var card=document.createElement('div');
     card.className='lvl-card'+(isU?'':' locked');
-    card.innerHTML='<div class="n">'+(isU?(i+1):'🔒')+'</div><div class="nm">'+lv.name+'</div>'+
-      (best[i]?'<div class="bs">最佳 '+best[i]+'</div>':'<div class="bs">未通关</div>');
+    card.innerHTML='<div class="n">'+(isU?(i+1):'🔒')+'</div><div class="nm">'+LVN(lv.name)+'</div>'+
+      (best[i]?'<div class="bs">'+Sf('bsBest',{n:best[i]})+'</div>':'<div class="bs">'+S('notCleared')+'</div>');
     if (isU) card.onclick=function(){ startLevel(i); };
     grid.appendChild(card);
   });
@@ -1952,9 +2173,9 @@ function renderCustomGrid(){
       card.className='lvl-card custom-card';
       card.draggable=true;
       card.dataset.idx=i;
-      card.innerHTML='<div class="n" style="font-size:20px;" title="点击换图标">'+(c.icon||'🎮')+'</div>'+
-        '<div class="nm" title="点击改名字">'+c.name+'</div>'+
-        '<div class="bs">'+(c.beat?'已通关':'未通关')+'</div>';
+      card.innerHTML='<div class="n" style="font-size:20px;" title="'+S('titleIcon')+'">'+(c.icon||'🎮')+'</div>'+
+        '<div class="nm" title="'+S('titleRename')+'">'+c.name+'</div>'+
+        '<div class="bs">'+(c.beat?S('cleared'):S('notCleared'))+'</div>';
       card.querySelector('.n').onclick=function(ev){ ev.stopPropagation(); openCustomEdit(parseInt(this.parentNode.dataset.idx,10)); };
       card.querySelector('.nm').onclick=function(ev){ ev.stopPropagation(); openCustomEdit(parseInt(this.parentNode.dataset.idx,10)); };
       card.addEventListener('dragstart',function(ev){ ev.dataTransfer.effectAllowed='move'; ev.dataTransfer.setData('text/plain',String(i)); card.classList.add('dragging'); });
@@ -1992,7 +2213,7 @@ function renderCustomGrid(){
     var cust=store.custom();
     if (isNaN(from)||from<0||from>=cust.length) return;
     pendingDelete=from;
-    $('confirm-text').textContent='确定删除「'+(cust[from].name||'自定义关卡')+'」吗？删除后不可恢复。';
+    $('confirm-text').textContent=Sf('confirmDelete',{n:cust[from].name||S('customLevel')});
     $('modal-confirm').classList.remove('hidden');
   });
 })();
@@ -2018,7 +2239,7 @@ $('custom-cancel').onclick=function(){ $('modal-custom').classList.add('hidden')
 $('custom-save').onclick=function(){
   var cust=store.custom();
   if (editingCustomIdx>=0 && editingCustomIdx<cust.length){
-    var name=$('custom-name').value.trim()||'自定义关卡';
+    var name=$('custom-name').value.trim()||S('customLevel');
     var selIc=document.querySelector('#custom-icons .ic.sel');
     cust[editingCustomIdx].name=name;
     cust[editingCustomIdx].icon=selIc?selIc.textContent:'🎮';
@@ -2043,7 +2264,7 @@ $('h-pause').onclick=function(){ togglePause(); };
 $('h-back').onclick=function(){ gameBack(); };
 $('h-view').onclick=function(){
   cam.viewMode = (cam.viewMode==='2d') ? '3d' : '2d';
-  $('h-view').textContent = (cam.viewMode==='2d') ? '2D 视角' : '3D 视角';
+  $('h-view').textContent = (cam.viewMode==='2d') ? S('view2d') : S('view3d');
 };
 
 /* ---------- 操作指引（展开/收起两种模式） ---------- */
@@ -2060,7 +2281,7 @@ function updateGuide(){
   var b=$('guide-collapse');
   var beaten=!!(store.best()[0]);
   b.disabled=!beaten;
-  b.title=beaten?'收起指引（切到底部小提示条）':'通关第 1 关后解锁收起';
+  b.title=beaten?S('guideColTitle'):S('guideColLock');
 }
 $('guide-collapse').onclick=function(){ guideSetExpanded(false); updateGuide(); };
 $('ctrl-hint').onclick=function(){ guideSetExpanded(true); updateGuide(); };
@@ -2071,7 +2292,7 @@ var editorLevel=null, editorFace=0, editorN=0, editorTool='-', editorBeat=false,
    WASD 按图纸方位（上=反重力侧 下=重力侧 左/右）移动到相邻面（查 CROSS_T 表，继承其朝向）；
    Q/E 旋转当前面状态 ±90°（地图内容随之转动，但箭头/重力始终指向屏幕下方）。
    相机 up 始终 = -重力方向（重力朝下），中键 freeLook 自由轨道不变。 */
-function edLabel(){ return FACE_NAMES[editorFace]+' 面 · '+editorN+'°'; }
+function edLabel(){ return Sf('edFace',{f:FN(editorFace),d:editorN}); }
 /* 出生面状态的缓存：分享码/草稿用它，避免试玩后 curFace/curN 已被游戏过程改变，
    导致 stateOfFace(出生面) 算出错误的出生状态（只在编辑器状态可信时刷新） */
 var editorSpawnState=0;
@@ -2116,17 +2337,17 @@ function saveDraft(){
   store.setDraft({ code:encodeLevel(editorLevel.N,editorLevel.grid,editorSpawnState), grid:editorLevel.grid, N:editorLevel.N, beat:editorBeat, spawnState:editorSpawnState });
 }
 // 传送门 0~9 全部可用（策划案 §1.4：上限 10 对；Q10：编辑器蓝图与关卡同步可用）
-var PALETTE=[ ['=','墙体'], ['~','木板'], ['+','地刺'], ['s','出生点'], ['e','终点'],
-  ['0','传送门 0'], ['1','传送门 1'], ['2','传送门 2'], ['3','传送门 3'], ['4','传送门 4'],
-  ['5','传送门 5'], ['6','传送门 6'], ['7','传送门 7'], ['8','传送门 8'], ['9','传送门 9'],
-  ['H','黑障'], ['R','红障'], ['L','蓝障'] ];
+var PALETTE=[ ['=','palWall'], ['~','palPlank'], ['+','palSpike'], ['s','palSpawn'], ['e','palGoal'],
+  ['0','palPortal'], ['1','palPortal'], ['2','palPortal'], ['3','palPortal'], ['4','palPortal'],
+  ['5','palPortal'], ['6','palPortal'], ['7','palPortal'], ['8','palPortal'], ['9','palPortal'],
+  ['H','palBlack'], ['R','palRed'], ['L','palBlue'] ];
 /* 编辑器调色板图标：与游戏内面贴图同款绘制（替代字符；传送门保留数字） */
 function drawPaletteIcon(ctx, ch, px){
-  ctx.fillStyle='#0d1117'; ctx.fillRect(0,0,px,px);
-  ctx.strokeStyle='rgba(136,170,255,0.12)'; ctx.lineWidth=1;
+  ctx.fillStyle='#080d1a'; ctx.fillRect(0,0,px,px);
+  ctx.strokeStyle='rgba(56,189,248,0.14)'; ctx.lineWidth=1;
   ctx.strokeRect(0.5,0.5,px-1,px-1);
   var t=CH2TER[ch];
-  if (t===T.WALL){ ctx.fillStyle='#5b6b8f'; ctx.fillRect(1,1,px-2,px-2); }
+  if (t===T.WALL){ ctx.fillStyle='#6779ab'; ctx.fillRect(1,1,px-2,px-2); ctx.fillStyle='rgba(226,236,255,0.16)'; ctx.fillRect(1,1,px-2,px*0.22); }
   else if (t===T.PLANK){ ctx.fillStyle='#c98a4b'; ctx.fillRect(1,1,px-2,px-2);
     ctx.fillStyle='#8a5a2e'; ctx.fillRect(1,px*0.32,px-2,2); ctx.fillRect(1,px*0.66,px-2,2); }
   else if (t===T.SPIKE){
@@ -2148,9 +2369,9 @@ function drawPaletteIcon(ctx, ch, px){
     // 出生点：绿色箭头朝屏下（编辑器重力恒指屏下）
     var cx=px/2, cy=px/2, ax=0, ay=1;
     var pxx=-ay*px*0.17, pyy=ax*px*0.17;
-    ctx.strokeStyle='#59d67b'; ctx.lineWidth=2; ctx.lineCap='round';
+    ctx.strokeStyle='#34d399'; ctx.lineWidth=2; ctx.lineCap='round';
     ctx.beginPath(); ctx.moveTo(cx-ax*px*0.16, cy-ay*px*0.16); ctx.lineTo(cx+ax*px*0.14, cy+ay*px*0.14); ctx.stroke();
-    ctx.fillStyle='#59d67b';
+    ctx.fillStyle='#34d399';
     ctx.beginPath();
     ctx.moveTo(cx+ax*px*0.24, cy+ay*px*0.24);
     ctx.lineTo(cx-ax*px*0.02+pxx, cy-ay*px*0.02+pyy);
@@ -2167,7 +2388,7 @@ function drawPaletteIcon(ctx, ch, px){
     ctx.fillText(ch, px/2, px/2+1);
   }
   if (ch==='H'||ch==='R'||ch==='L'){
-    drawUrchin(ctx, px/2, px/2, px, ['#3a3a4d','#e0493f','#4aa8e0'][CH2OBS[ch]-1]);
+    drawUrchin(ctx, px/2, px/2, px, ['#3a3a4d','#ef4444','#38bdf8'][CH2OBS[ch]-1]);
     // 小眼睛（无玩家 → 直视前方）
     var cx2=px/2, cy2=px*0.45, r2=px*0.21;
     ctx.fillStyle='#f2f5fa';
@@ -2184,7 +2405,7 @@ function buildPalette(){
   PALETTE.forEach(function(it){
     var b=document.createElement('button');
     b.className='tool';
-    b.dataset.char=it[0]; b.title=it[1];
+    b.dataset.char=it[0]; b.title=(it[1]==='palPortal')?Sf('palPortal',{n:it[0]}):S(it[1]);
     var cv=document.createElement('canvas');
     cv.width=28; cv.height=28; cv.style.width='28px'; cv.style.height='28px';
     drawPaletteIcon(cv.getContext('2d'), it[0], 28);
@@ -2216,11 +2437,11 @@ function openEditor(){
     editorSize=sz; editorLevel=blankLevel(sz);
     $('ed-size-in').value=sz;
     $('ed-size-in').focus();
-    $('editor-msg').textContent='请选择尺寸（5~16）后开始绘制';
+    $('editor-msg').textContent=S('edMsgChooseSize');
     saveDraft();
   } else {
     $('ed-size-in').value=editorSize;
-    if (!editorBeat) $('editor-msg').textContent='已恢复上次草稿，通关试玩一次后即可分享';
+    if (!editorBeat) $('editor-msg').textContent=S('edMsgDraft');
   }
   curFace=editorFace; curN=editorN; // 编辑器显示用同一套状态模型（重力/箭头始终朝屏幕下）
   mode='editor';
@@ -2306,12 +2527,12 @@ function updateEditorInfo(){
   var dec=decodeLevel(code);
   var info=$('ed-info'), msg=$('editor-msg'), btn=$('ed-test');
   if (dec.ok){
-    info.innerHTML='尺寸 <b>'+dec.N+'</b> · 出生点 '+FACE_NAMES[dec.spawn.face]+'/'+FACE_LETTERS[dec.spawn.face]+dec.spawnState+' · 终点 ✓ · 传送门 '+dec.portalDigits.length+' 对';
-    msg.textContent=editorBeat?'已通关，可以分享（点「分享码」复制）':'通关试玩一次后即可分享';
+    info.innerHTML=Sf('edInfoOk',{n:dec.N,f:FN(dec.spawn.face),l:FACE_LETTERS[dec.spawn.face],s:dec.spawnState,p:dec.portalDigits.length});
+    msg.textContent=editorBeat?S('edMsgBeat'):S('edMsgNeedBeat');
     btn.disabled=false;
   } else {
-    info.innerHTML='尺寸 <b>'+editorLevel.N+'</b> · <span style="color:#ff5b5b;">'+dec.err+'</span>';
-    msg.textContent='补齐出生点/终点并配对传送门后才能试玩';
+    info.innerHTML=Sf('edInfoErr',{n:editorLevel.N,e:dec.err});
+    msg.textContent=S('edMsgIncomplete');
     btn.disabled=true;
   }
   // 策划案 §1.8：作者必须自己通关一次，才能解锁「分享地图分享码」（显示代码）
@@ -2323,15 +2544,15 @@ $('ed-test').onclick=function(){
   var dec=decodeLevel(code);
   if (!dec.ok){ $('editor-msg').textContent=dec.err; return; }
   currentLevelIndex=null; currentCustom=null; editorBeatSrc='editor';
-  startLevelWithCode('编辑器试玩', code, 'editor');
+  startLevelWithCode(S('edTestName'), code, 'editor');
 };
 $('ed-share').onclick=function(){
   var code=encodeLevel(editorLevel.N,editorLevel.grid,editorSpawnState);
   var dec=decodeLevel(code);
   if (!dec.ok){ $('editor-msg').textContent=dec.err; return; }
-  if (!editorBeat){ $('editor-msg').textContent='请先通关试玩一次才能分享'; return; }
+  if (!editorBeat){ $('editor-msg').textContent=S('edMsgMustBeat'); return; }
   $('share-code').value=code; $('share-code').select();
-  $('editor-msg').textContent='分享码已生成（已复制到剪贴板备用，Ctrl+C）';
+  $('editor-msg').textContent=S('edMsgCodeGen');
   try{ navigator.clipboard.writeText(code); }catch(e){}
 };
 $('ed-clear').onclick=function(){ editorLevel=blankLevel(editorSize); editorBeat=false;
@@ -2344,7 +2565,7 @@ $('ed-back').onclick=function(){ mode='idle'; show('screen-home'); };
 });
 $('ed-size-apply').onclick=function(){
   var n=parseInt($('ed-size-in').value,10);
-  if (!(n>=5 && n<=16)){ $('editor-msg').textContent='尺寸必须在 5~16 之间'; return; }
+  if (!(n>=5 && n<=16)){ $('editor-msg').textContent=S('errSize'); return; }
   setEditorSize(n);
 };
 $('ed-size-in').addEventListener('keydown',function(e){
@@ -2356,6 +2577,11 @@ makeMats();
 initScene();
 renderer=initRenderer($('gl'));
 cam.dist=14;
+try{
+  var savedLang=localStorage.getItem('cube_lang');
+  LANG=(savedLang==='en'||savedLang==='zh')?savedLang:(((navigator.language||'').toLowerCase().indexOf('zh')===0)?'zh':'en');
+}catch(e){}
+applyLang();
 show('screen-home');
 /* 调试/测试接口（不影响游戏运行） */
 window.__game = { startLevel:startLevel, startCustom:startCustom, openEditor:openEditor, restartLevel:restartLevel,
